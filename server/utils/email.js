@@ -36,30 +36,36 @@ export const sendAccountVerificationEmail = async (email, name, otpCode) => {
   });
 };
  
-export const sendBookingVerificationEmail = async (email, name, eventTitle, otpCode) => {
+export const sendBookingVerificationEmail = async (email, name, eventTitle, seatsBooked, otpCode) => {
   const transporter = createTransporter();
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
       <h2 style="color: #0d9488; text-align: center;">Authorize Your Ticket Booking</h2>
       <p>Hello <strong>${name}</strong>,</p>
-      <p>We received a ticket reservation request for the event: <strong>${eventTitle}</strong>.</p>
-      <p>To verify your identity and proceed directly to payment checkout, please enter this security OTP code within 5 minutes:</p>
+      <p>We received a ticket reservation request for your account:</p>
+      
+      <div style="background-color: #f8fafc; border-left: 4px solid #0d9488; padding: 12px; margin: 15px 0;">
+        <p style="margin: 0; color: #334155;"><strong>Event:</strong> ${eventTitle}</p>
+        <p style="margin: 5px 0 0 0; color: #334155;"><strong>Seats Reserved:</strong> ${seatsBooked} Ticket(s)</p>
+      </div>
+
+      <p>To verify your identity and finalize your booking, please enter this security OTP code within 15 minutes:</p>
       <div style="background-color: #f0fdfa; border: 2px solid #0d9488; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #115e59; margin: 20px 0;">
         ${otpCode}
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center;">This code ensures your ticket allocations are safely secured before card checkout.</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center;">This code ensures your ticket allocations are safely secured before layout checkout.</p>
     </div>
   `;
 
   await transporter.sendMail({
     from: `"Evently Booking Desk" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `Verify Booking for ${eventTitle}`,
+    subject: `Verify Booking for ${eventTitle} (${seatsBooked} Seats)`,
     html: htmlContent,
   });
 };
- 
+
 export const sendPaymentSuccessEmail = async (email, name, bookingDetails) => {
   const transporter = createTransporter();
   const { eventTitle, date, time, location, seatsBooked, totalPrice, transactionId } = bookingDetails;

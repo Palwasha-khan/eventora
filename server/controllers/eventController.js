@@ -67,7 +67,7 @@ export const updateEvent = async (req, res) => {
     }
 
     event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
 
