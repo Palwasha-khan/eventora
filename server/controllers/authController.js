@@ -96,12 +96,10 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    // Enforce OTP compliance before allowing a user into their session dashboard
-    if (!user.isVerified) {
+   if (!user.isVerified) {
       return res.status(403).json({ success: false, message: 'Account not verified. Please verify your email via OTP.' });
     }
 
-    // Leverage our User instance method to match passwords securely
     const isMatch = await user.matchPassword(password);
 
     if (isMatch) {
@@ -120,3 +118,12 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @route   POST /api/auth/logout
+export const logoutUser = async (req, res) => {
+  try {
+    res.status(200).json({ success: true, message: 'Logout successful. Please delete your token on the client side.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}; 
