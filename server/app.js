@@ -4,12 +4,15 @@ import connectDB from "./config/dbConnect.js";
 import authRoutes from './routes/authRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import cors from 'cors';
+ 
+
 
 dotenv.config();
 connectDB();
 
 const app = express();
-
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);

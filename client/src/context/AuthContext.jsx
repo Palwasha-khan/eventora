@@ -9,15 +9,23 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      // Decode or restore local token structure
-      setUser({ token }); 
+    const savedUser = localStorage.getItem('user');
+    if (token && savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser({ token, ...parsedUser });
+      } catch (error) {
+        console.error("Error parsing saved user from localStorage:", error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      } 
     }
     setLoading(false);
   }, []);
 
   const login = (userData, token) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
