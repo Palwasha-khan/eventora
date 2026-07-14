@@ -53,10 +53,11 @@ export const registerUser = async (req, res) => {
  
 // @route   POST /api/auth/verify-otp
 export const verifyAccountOtp = async (req, res) => {
-  const { email, otpCode } = req.body;
+  const { email, otp } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
+  const Otp = Number(otp);
+   try {
+    const user = await User.findOne({ email});
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User account not located.' });
@@ -65,9 +66,16 @@ export const verifyAccountOtp = async (req, res) => {
     if (user.isVerified) {
       return res.status(400).json({ success: false, message: 'Account is already verified.' });
     }
+
+  if (String(user.otpCode) !== String(otp) || new Date() > user.otpExpires) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired OTP verification code.' });
+  }
  
-    if (user.otpCode !== otpCode || new Date() > user.otpExpires) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired OTP verification code.' });
+    if (new Date() > user.otpExpires) {
+      return res.status(400).json({ success: false, message: 'expired OTP verification code...' });
+    }
+     if (user.otpCode != Otp) {
+      return res.status(400).json({ success: false, message: 'Invalid  OTP verification code...' });
     }
  
     user.isVerified = true;
@@ -80,6 +88,50 @@ export const verifyAccountOtp = async (req, res) => {
       message: 'Account verified successfully. You may now log in.',
       token: generateToken(user._id)
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   POST /api/auth/resend-otp
+export const resendAccountOtp = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email address is required.' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User account not located...' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ success: false, message: 'This account is already verified.' });
+    }
+    const newOtp = generateOtp();
+    user.otpCode = newOtp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    try {
+      await sendAccountVerificationEmail(user.email, user.name, newOtp);
+    } catch (mailError) {
+      console.error("⚠️ Mail failed to send during resend:", mailError.message);
+      return res.status(200).json({
+        success: true,
+        message: 'New OTP generated, but email failed to send. Check backend logs.',
+        testOtpCode: newOtp 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'A fresh OTP verification code has been dispatched to your email.'
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

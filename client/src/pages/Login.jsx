@@ -22,34 +22,18 @@ const Login = () => {
   try {
     console.log("🔌 Attempting login with:", email);
     const response = await api.post('/auth/login', { email, password });
-    
-    console.log("📦 Full Backend Response Data:", response.data);
-
-    // 1. Check if we received a token directly from the root
-    if (response.data && response.data.token) {
+   if (response.data && response.data.token) {
       
-      // 2. Extract user details directly from the root response data object
       const userData = {
         id: response.data._id,
         name: response.data.name,
         email: response.data.email,
         role: response.data.role
       };
-
-      console.log("✅ Checkpoint 1: Success flag or token found.");
-      console.log("👤 User payload to be saved:", userData);
-      console.log("🔑 Token payload to be saved:", response.data.token);
-
-      // 3. Save to global Auth context
-      login(userData, response.data.token);
-      
-      console.log("🚀 Checkpoint 2: global login() called. Triggering navigation to /dashboard...");
-      navigate('/dashboard');
-    } else {
-      console.log("⚠️ Checkpoint Failed: Response did not contain success flag or token.");
-    }
+ login(userData, response.data.token);
+navigate('/dashboard');
+    } 
   } catch (err) {
-    console.error("❌ Catch Block Error:", err);
     setError(err.response?.data?.message || 'Invalid email or password.');
   } finally {
     setLoading(false);
