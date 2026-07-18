@@ -10,19 +10,15 @@ const ManageEvents = () => {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // State for Delete Confirmation Modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Fetch all events managed by the admin
- const fetchEvents = async () => {
+const fetchEvents = async () => {
   try {
     setLoading(true);
     const response = await api.get('/events');
     
-    // Look at what console.log prints in your browser inspect tools. 
-    // If it looks like { success: true, events: [...] }, you must target response.data.events
     if (response.data && response.data.events) {
       setEvents(response.data.events);
     } else if (Array.isArray(response.data)) {
@@ -46,35 +42,29 @@ const ManageEvents = () => {
     fetchEvents();
   }, []);
 
-  // FIXED: Added array evaluation fallback to prevent runtime crash if events is undefined or an unexpected structure
-  const filteredEvents = Array.isArray(events)
+ const filteredEvents = Array.isArray(events)
     ? events.filter((event) =>
         event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.location?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
 
-  // Open delete confirmation dialog
   const openDeleteModal = (event) => {
     setEventToDelete(event);
     setIsDeleteModalOpen(true);
   };
 
-  // Close delete confirmation dialog
   const closeDeleteModal = () => {
     setEventToDelete(null);
     setIsDeleteModalOpen(false);
   };
 
-  // Send DELETE request to backend
   const handleDelete = async () => {
     if (!eventToDelete) return;
     try {
       setDeleteLoading(true);
       await api.delete(`/events/${eventToDelete._id}`);
-      
-      // Remove from local UI state
-      setEvents((prevEvents) => prevEvents.filter((e) => e._id !== eventToDelete._id));
+     setEvents((prevEvents) => prevEvents.filter((e) => e._id !== eventToDelete._id));
       closeDeleteModal();
     } catch (err) {
       console.error(err);

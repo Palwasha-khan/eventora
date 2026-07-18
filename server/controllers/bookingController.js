@@ -1,7 +1,45 @@
 import Booking from '../models/Booking.js';
 import Event from '../models/Events.js';
+import User from'../models/User.js';
 import generateOtp from '../utils/generateOtp.js';
 import { sendBookingVerificationEmail } from '../utils/email.js'; 
+
+ 
+
+
+export const getAdminStats = async (req, res) => {
+  try {
+    const totalEvents = await Event.countDocuments();
+
+    const totalBookings = await Booking.countDocuments();
+
+    const totalUsers = await User.countDocuments({ role: 'user' });
+
+    const activeBookings = await Booking.find({ status: { $ne: 'canceled' } });
+
+    let totalRevenue = 0;
+    for (let i = 0; i < activeBookings.length; i++) {
+      totalRevenue = totalRevenue + activeBookings[i].totalPrice;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalEvents: totalEvents,
+        totalBookings: totalBookings,
+        totalUsers: totalUsers,
+        totalRevenue: totalRevenue
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error metrics execution failed.'
+    });
+  }
+};
  
 // @route   POST /api/bookings/initiate
 export const initiateBooking = async (req, res) => {
@@ -54,7 +92,6 @@ export const initiateBooking = async (req, res) => {
   }
 };
 
-// @desc    Confirm Booking via OTP & Deduct Event Seats
 // @route   POST /api/bookings/confirm
 export const confirmBooking = async (req, res) => {
   const { bookingId, otpCode } = req.body;

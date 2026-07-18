@@ -6,37 +6,34 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  // Tabs: 'overview' (Admin Metrics) or 'my-bookings' (Personal Profile & Tickets)
-  const [activeTab, setActiveTab] = useState('overview');
+
+ const [activeTab, setActiveTab] = useState('overview');
   
-  // Admin Metrics States
   const [stats, setStats] = useState({ totalEvents: 0, totalBookings: 0, totalUsers: 0, totalRevenue: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Personal Booking Profile States
   const [personalBookings, setPersonalBookings] = useState([]);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  // Fetch Admin Overview Metrics
   const fetchAdminStats = async () => {
-    try {
-      setStatsLoading(true);
-      const response = await api.get('/admin/stats'); 
-      if (response.data?.success) {
-        setStats(response.data.data);
-      }
-    } catch (err) {
-      console.error("Failed to load admin metrics:", err);
-      // Fallback dummy data for visual matching during testing
-      setStats({ totalEvents: 8, totalBookings: 24, totalUsers: 142, totalRevenue: 1250 });
-    } finally {
-      setStatsLoading(false);
+  try {
+    setStatsLoading(true);
+    const response = await api.get('/bookings/stats'); 
+    if (response.data && response.data.success && response.data.data) {
+      setStats(response.data.data);
+    } else {
+      console.warn("Backend response did not match expected structure:", response.data);
     }
-  };
+  } catch (err) {
+    console.error("Failed to load admin metrics:", err);
+    setStats({ totalEvents: 0, totalBookings: 0, totalUsers: 0, totalRevenue: 0 });
+  } finally {
+    setStatsLoading(false);
+  }
+};
 
-  // Fetch Personal Tickets (Admin's personal bookings)
   const fetchPersonalBookings = async () => {
     try {
       setPersonalLoading(true);
@@ -58,7 +55,6 @@ const AdminDashboard = () => {
     fetchPersonalBookings();
   }, []);
 
-  // Cancel a personal booking
   const handleCancelPersonalBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel your personal reservation?")) return;
     setCancellingId(bookingId);
@@ -77,7 +73,6 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-brand-bg-deep py-12 px-4 sm:px-6 lg:px-8 text-brand-text-main">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header Block */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-6 border-b border-brand-border">
           <div>
             <div className="flex items-center gap-2 text-brand-accent">
@@ -89,7 +84,6 @@ const AdminDashboard = () => {
             </h1>
           </div>
           
-          {/* Custom Navigation Tab Buttons */}
           <div className="flex bg-brand-bg-card p-1.5 rounded-xl border border-brand-border self-start md:self-auto">
             <button
               onClick={() => setActiveTab('overview')}
@@ -287,7 +281,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="border-t border-brand-border/40 pt-4 flex flex-col items-center gap-2">
-              <div className="bg-brand-text-bright p-2 rounded w-48 h-8 flex justify-between bg-white text-black font-mono text-[8px] items-center">
+              <div className="bg-brand-text-bright p-2 rounded w-48 h-8 flex justify-between text-black font-mono text-[8px] items-center">
                 {[...Array(20)].map((_, i) => <div key={i} className={`bg-black w-1 ${i % 3 === 0 ? 'h-6' : 'h-5'}`} />)}
                 <span>PASSID-{selectedTicket._id.substring(16).toUpperCase()}</span>
               </div>

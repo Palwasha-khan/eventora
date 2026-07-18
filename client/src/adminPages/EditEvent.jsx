@@ -4,10 +4,9 @@ import api from '../utils/api';
 import { ArrowLeft, Save, Loader2, Image, Calendar, MapPin, DollarSign, Users, Clock, FileText } from 'lucide-react';
 
 const EditEvent = () => {
-  const { id } = useParams(); // Extracts event ID from the route path parameters
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
-  // Component states
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,18 +22,15 @@ const EditEvent = () => {
     image: ''
   });
 
-  // Fetch individual event parameters on initialization
-  useEffect(() => {
+   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
         setLoading(true);
         const response = await api.get(`/events/${id}`);
         
-        // Unpack payload data correctly handling wrapping objects if present
         const eventData = response.data?.event || response.data?.data || response.data;
         
         if (eventData) {
-          // Format date string to YYYY-MM-DD so standard HTML input inputs populate cleanly
           const formattedDate = eventData.date ? new Date(eventData.date).toISOString().split('T')[0] : '';
           
           setFormData({
@@ -61,7 +57,6 @@ const EditEvent = () => {
     if (id) fetchEventDetails();
   }, [id]);
 
-  // Handle generalized input text changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -70,7 +65,6 @@ const EditEvent = () => {
     }));
   };
 
-  // Submit revised fields to backend PUT route
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -79,7 +73,6 @@ const EditEvent = () => {
       
       await api.put(`/events/${id}`, formData);
       
-      // Navigate cleanly back to manager control index upon resolution
       navigate('/admin/manage-events');
     } catch (err) {
       console.error(err);
@@ -150,7 +143,7 @@ const EditEvent = () => {
               value={formData.description}
               onChange={handleChange}
               placeholder="Provide a breakdown of schedule details, targets, and notes..."
-              className="w-full bg-brand-bg-deep border border-brand-border rounded-xl px-4 py-3 text-sm text-brand-text-bright focus:outline-none focus:border-brand-accent/60 transition-colors resize-y min-h-[100px]"
+              className="w-full bg-brand-bg-deep border border-brand-border rounded-xl px-4 py-3 text-sm text-brand-text-bright focus:outline-none focus:border-brand-accent/60 transition-colors resize-y min-h-25"
             />
           </div>
 

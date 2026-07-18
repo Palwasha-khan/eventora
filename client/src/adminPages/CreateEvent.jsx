@@ -34,7 +34,6 @@ const CreateEvent = () => {
     setError('');
     setSuccess('');
 
-    // Quick client-side validation formatting checks
     if (Number(formData.price) < 0 || Number(formData.availableSeats) <= 0) {
       setError('Price cannot be negative and Available Seats must be greater than 0.');
       setLoading(false);
@@ -50,7 +49,6 @@ const CreateEvent = () => {
 
       if (response.data) {
         setSuccess('Event created successfully!');
-        // Redirect back to the admin dashboard after a short delay
         setTimeout(() => {
           navigate('/admin/dashboard');
         }, 1500);
