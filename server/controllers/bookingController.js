@@ -110,3 +110,51 @@ export const getMyBookings = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('eventId', 'title date location price')
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, count: bookings.length, data: bookings });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const cancelBookingByAdmin = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking record not located.' });
+    }
+
+    if (booking.status === 'canceled') {
+      return res.status(400).json({ success: false, message: 'This booking is already canceled.' });
+    }
+
+    const event = await Event.findById(booking.eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Associated event not found.' });
+    }
+
+    // Since we are canceling, return the booked seats back to the event
+    event.availableSeats += booking.seatsBooked;
+    await event.save();
+
+    // Mark status as canceled
+    booking.status = 'canceled';
+    booking.paymentStatus = 'unpaid'; // Or 'refunded' if you handle Stripe refunds
+    await booking.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Booking successfully canceled and seats have been returned to the event capacity.',
+      data: booking
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

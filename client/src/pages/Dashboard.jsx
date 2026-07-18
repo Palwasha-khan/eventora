@@ -21,7 +21,7 @@ const Dashboard = () => {
       // This endpoint fetches the logged-in user's bookings.
       // Adjust path if your backend uses '/bookings/user' or '/bookings/my'
       const response = await api.get('/bookings/my-bookings');
-      
+      console.log("dtaaaaa",response.data)
       if (response.data && Array.isArray(response.data.data)) {
         setBookings(response.data.data);
       } else if (Array.isArray(response.data)) {

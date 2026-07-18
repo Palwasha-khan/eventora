@@ -34,8 +34,17 @@ const Navbar = () => {
                   to="/dashboard" 
                   className="text-sm font-semibold text-brand-text-main hover:text-brand-accent-light transition-colors"
                 >
-                  {user.role === 'admin' ? '🛠️ Admin Panel' : '👤 My Dashboard'}
+                 👤 My Dashboard
                 </Link>
+
+                {user.role === 'admin' && (
+                <Link 
+                  to="/admin/dashboard" 
+                  className="text-sm font-semibold text-brand-text-main hover:text-brand-accent-light transition-colors border-l border-brand-border pl-4"
+                >
+                  🛠️ Admin Panel
+                </Link>
+              )}
 
                 <span className="text-sm text-brand-text-muted hidden sm:inline">
                   Hi, <span className="font-bold text-brand-text-bright capitalize">{user.name}</span>
