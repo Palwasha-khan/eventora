@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
-import { XCircle, Loader, Info, ArrowLeft } from 'lucide-react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { XCircle, Loader, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState(null);
-  const Navigate = useNavigate();
+  
+  // States for the custom modal popup
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+
+  const navigate = useNavigate();
 
   const fetchAllBookings = async () => {
     try {
@@ -25,33 +30,43 @@ const ManageBookings = () => {
     fetchAllBookings();
   }, []);
 
-  const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to cancel this booking? This will return the seats to the event's available capacity.")) return;
+  // Triggered when user clicks the row X button
+  const openCancelModal = (bookingId) => {
+    setSelectedBookingId(bookingId);
+    setIsModalOpen(true);
+  };
+
+  // Triggered when user confirms inside the popup modal
+  const handleConfirmCancel = async () => {
+    if (!selectedBookingId) return;
     
-    setActioningId(bookingId);
+    setIsModalOpen(false); // Close modal immediately
+    setActioningId(selectedBookingId);
+    
     try {
-      await api.put(`/admin/bookings/${bookingId}/cancel`);
+      // NOTE: Ensure this path matches your backend route layout (/admin/bookings or /bookings)
+      await api.delete(`/bookings/${selectedBookingId}/cancel`);
       fetchAllBookings();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to cancel booking.');
     } finally {
       setActioningId(null);
+      setSelectedBookingId(null);
     }
   };
 
   return (
-
-
-    <div className="min-h-screen bg-brand-bg-deep py-12 px-6 text-brand-text-main">
+    <div className="min-h-screen bg-brand-bg-deep py-12 px-6 text-brand-text-main relative">
       <div className="max-w-6xl mx-auto">
 
         <button 
-          onClick={() => Navigate('/admin/dashboard')}
+          onClick={() => navigate('/admin/dashboard')}
           className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-text-muted hover:text-brand-accent transition-colors mb-6 cursor-pointer group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Back to Terminal
         </button>
+        
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-brand-border">
           <div>
             <h1 className="text-3xl font-extrabold text-brand-text-bright">
@@ -128,8 +143,8 @@ const ManageBookings = () => {
                           <div className="flex justify-end">
                             {booking.status !== 'canceled' ? (
                               <button 
-                                onClick={() => handleCancelBooking(booking._id)}
-                                className="p-1.5 hover:bg-rose-500/10 text-rose-400 border border-transparent hover:border-rose-500/20 rounded-lg transition-all"
+                                onClick={() => openCancelModal(booking._id)}
+                                className="p-1.5 hover:bg-rose-500/10 text-rose-400 border border-transparent hover:border-rose-500/20 rounded-lg transition-all cursor-pointer"
                                 title="Cancel Booking & Release Seats"
                               >
                                 <XCircle className="h-5 w-5" />
@@ -148,6 +163,39 @@ const ManageBookings = () => {
           </div>
         )}
       </div>
+
+      {/* TAILWIND CONFIRMATION MODAL POPUP */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-brand-bg-card border border-brand-border w-full max-w-md rounded-2xl p-6 shadow-2xl scale-in transition-transform">
+            <div className="flex items-center gap-3 text-rose-400 mb-4">
+              <div className="p-2 bg-rose-500/10 rounded-xl border border-rose-500/20">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-brand-text-bright">Confirm Cancellation</h3>
+            </div>
+            
+            <p className="text-sm text-brand-text-muted mb-6 leading-relaxed">
+              Are you sure you want to cancel this booking? This action will immediately return the allocated seats back to the event's available capacity.
+            </p>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setIsModalOpen(false); setSelectedBookingId(null); }}
+                className="px-4 py-2 text-xs font-semibold rounded-xl border border-brand-border text-brand-text-muted hover:bg-brand-bg-deep transition-colors cursor-pointer"
+              >
+                Nevermind
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-rose-500 text-white hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/20 cursor-pointer"
+              >
+                Yes, Cancel Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

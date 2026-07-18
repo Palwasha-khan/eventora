@@ -28,9 +28,7 @@ const fetchEvents = async () => {
     } else {
       setEvents([]);
     }
-    
-    console.log("Your backend response structure:", response.data);
-  } catch (err) {
+   } catch (err) {
     console.error(err);
     setError('Failed to fetch events. Please reload the page.');
   } finally {

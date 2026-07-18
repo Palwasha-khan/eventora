@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api'; // Custom Axios instance pointing to /api
 import { Calendar, MapPin, Users, Ticket, AlertCircle } from 'lucide-react';
+import BookingModal from './BookingModal';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
+ const [selectedEvent, setSelectedEvent] = useState(null);
   
   useEffect(() => {
   const fetchEvents = async () => {
@@ -91,13 +92,13 @@ const Home = () => {
                   {/* Event Image Banner */}
                   <div className="relative h-48 w-full overflow-hidden">
                     <img 
-  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
-  src={
-    event.image 
-      ? `http://localhost:4000${event.image.replace(/^\/?public/, '')}`
-      : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=600'
-  } 
-  alt={event.title} 
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                            src={
+                              event.image 
+                                ? `http://localhost:4000${event.image.replace(/^\/?public/, '')}`
+                                : 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=600'
+                            } 
+                            alt={event.title} 
 />
                     <div className="absolute inset-0 bg-linear-to-t from-brand-bg-card to-transparent opacity-85"></div>
                   </div>
@@ -143,6 +144,7 @@ const Home = () => {
                   </div>
                   
                   <button 
+                   onClick={() => setSelectedEvent(event)}
                     disabled={event.availableSeats === 0}
                     className={`px-5 py-2.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 ${
                       event.availableSeats === 0 
@@ -159,6 +161,16 @@ const Home = () => {
         )}
 
       </div>
+      {selectedEvent && (
+        <BookingModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onBookingSuccess={() => {
+            // Re-fetch standard capacities synchronously when someone takes a seat
+            fetchEvents(); 
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,27 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api'; // Custom Axios instance pointing to /api
-import { Calendar, MapPin, Ticket, AlertCircle, Trash2, Printer, CheckCircle, Clock, XCircle, ShieldCheck } from 'lucide-react';
+import { Calendar, MapPin, Ticket, AlertCircle, Trash2, Printer, CheckCircle, Clock, XCircle, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // States for View/Print Ticket Modal
   const [selectedTicket, setSelectedTicket] = useState(null);
-  
-  // States for Cancelling a booking
-  const [cancellingId, setCancellingId] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
-
+ 
   const fetchUserBookings = async () => {
     try {
       setLoading(true);
       setError('');
-      // This endpoint fetches the logged-in user's bookings.
-      // Adjust path if your backend uses '/bookings/user' or '/bookings/my'
       const response = await api.get('/bookings/my-bookings');
-      console.log("dtaaaaa",response.data)
       if (response.data && Array.isArray(response.data.data)) {
         setBookings(response.data.data);
       } else if (Array.isArray(response.data)) {
@@ -41,26 +34,8 @@ const Dashboard = () => {
     fetchUserBookings();
   }, []);
 
-  // Handle Booking Cancellation
-  const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to request cancellation for this ticket?")) return;
-    
-    setCancelLoading(true);
-    setCancellingId(bookingId);
-    try {
-      // Backend route to cancel/delete a booking
-      await api.put(`/bookings/${bookingId}/cancel`);
-      
-      // Refresh list to show 'Canceled' status or filter it out
-      await fetchUserBookings();
-    } catch (err) {
-      console.error("Failed to cancel booking:", err);
-      alert(err.response?.data?.message || "Failed to cancel booking.");
-    } finally {
-      setCancelLoading(false);
-      setCancellingId(null);
-    }
-  };
+ 
+  
 
   // Helper to render beautiful stylized status tags
   const renderStatusBadge = (status) => {
@@ -230,17 +205,7 @@ const Dashboard = () => {
                         <Printer className="h-3.5 w-3.5" /> View Ticket
                       </button>
 
-                      {/* Disable cancellation if already Canceled */}
-                      {booking.status?.toLowerCase() !== 'canceled' && booking.status?.toLowerCase() !== 'cancelled' && (
-                        <button 
-                          disabled={cancelLoading && cancellingId === booking._id}
-                          onClick={() => handleCancelBooking(booking._id)}
-                          className="px-4 py-2 border border-brand-danger-border bg-brand-bg-deep hover:bg-brand-danger-hover/10 text-brand-danger-text text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> 
-                          {cancellingId === booking._id ? "Processing..." : "Cancel Booking"}
-                        </button>
-                      )}
+                     
                     </div>
                   </div>
 
@@ -251,6 +216,8 @@ const Dashboard = () => {
         )}
 
       </div>
+
+ 
 
       {/* --- THEMED TICKET MODAL DESIGN --- */}
       {selectedTicket && (
